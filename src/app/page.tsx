@@ -66,7 +66,7 @@ export default function Home() {
       const downloadUrl = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = downloadUrl;
-      a.download = "downloadedFile.xlsx"; // Use a static name for testing
+      a.download = "walmart-scraped-data.xlsx";
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(downloadUrl);
@@ -176,13 +176,17 @@ export default function Home() {
             {formData.error}
           </div>
         )}
-        <button onClick={onSubmit} disabled={isLoading || !formData.value} className='py-2 px-4 bg-blue-500 text-white rounded-lg cursor-pointer disabled:bg-blue-900 disabled:cursor-not-allowed flex justify-center'>
-          {isLoading ? (<div className='flex gap-1 justify-end items-center'>
-          <span>Scraping...</span>
-            <LuLoader2 size={25} className='animate-spin' /> 
-          </div>) :
-            !formData.value ? 'Select file'  : 'Upload'}
-        </button>
+        {
+          formData.value && (
+            <button onClick={onSubmit} disabled={isLoading || !formData.value} className='py-2 px-4 bg-blue-500 text-white rounded-lg cursor-pointer disabled:bg-blue-900 disabled:cursor-not-allowed flex justify-center'>
+              {isLoading ? (<div className='flex gap-1 justify-end items-center'>
+                <span>Scraping please wait</span>
+                <LuLoader2 size={25} className='animate-spin' />
+              </div>) : 'Upload'}
+            </button>
+          )
+        }
+
       </div>
     </main>
   );
