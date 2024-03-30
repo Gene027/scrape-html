@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { FiUploadCloud } from 'react-icons/fi';
+import { LuLoader2 } from 'react-icons/lu';
 
 interface FormData {
   touched: boolean;
@@ -61,16 +62,15 @@ export default function Home() {
         throw new Error('Failed to upload the data. Please try again.')
       }
 
-      const data = await response.json()
-      // const blob = await response.blob();
-      // const downloadUrl = window.URL.createObjectURL(blob);
-      // const a = document.createElement('a');
-      // a.href = downloadUrl;
-      // a.download = formData.value.name;
-      // document.body.appendChild(a);
-      // a.click();
-      // window.URL.revokeObjectURL(downloadUrl);
-      // a.remove();
+      const blob = new Blob([await response.arrayBuffer()], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = downloadUrl;
+      a.download = "downloadedFile.xlsx"; // Use a static name for testing
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(downloadUrl);
+      a.remove();
 
     } catch (error: Error | any) {
       setError(error)
@@ -176,8 +176,12 @@ export default function Home() {
             {formData.error}
           </div>
         )}
-        <button onClick={onSubmit} disabled={isLoading || !formData.value} className='py-2 px-4 bg-blue-500 text-white rounded-lg cursor-pointer disabled:bg-blue-900 disabled:cursor-not-allowed'>
-          {isLoading ? 'Uploading...' : 'Upload'}
+        <button onClick={onSubmit} disabled={isLoading || !formData.value} className='py-2 px-4 bg-blue-500 text-white rounded-lg cursor-pointer disabled:bg-blue-900 disabled:cursor-not-allowed flex justify-center'>
+          {isLoading ? (<div className='flex gap-1 justify-end items-center'>
+          <span>Scraping...</span>
+            <LuLoader2 size={25} className='animate-spin' /> 
+          </div>) :
+            !formData.value ? 'Select file'  : 'Upload'}
         </button>
       </div>
     </main>
