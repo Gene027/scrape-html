@@ -1,6 +1,8 @@
+'use client'
 import { useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { FiUploadCloud } from 'react-icons/fi';
+import { LuLoader2 } from 'react-icons/lu';
 
 interface FormData {
   touched: boolean;
@@ -16,6 +18,9 @@ export default function Home() {
       value: null,
     },
   );
+
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [error, setError] = useState<string | null>(null)
 
   const onDrop = async (files: File[]) => {
 
@@ -35,12 +40,58 @@ export default function Home() {
 
       maxFiles: 1,
     });
+  const onSubmit = async () => {
+    if (!formData.value) {
+      setError('No file selected.');
+      return;
+    }
+
+    setIsLoading(true)
+    setError(null)
+
+    const uploadData = new FormData();
+    uploadData.append('file', formData.value);
+
+    try {
+      const response = await fetch('/api/scrape', {
+        method: 'POST',
+        body: uploadData,
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to upload the data. Please try again.')
+      }
+
+      const blob = new Blob([await response.arrayBuffer()], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = downloadUrl;
+      a.download = "walmart-scraped-data.xlsx";
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(downloadUrl);
+      a.remove();
+
+    } catch (error: Error | any) {
+      setError(error)
+      console.error(error)
+    } finally {
+      setIsLoading(false)
+      setFormData(
+        {
+          touched: false,
+          error: '',
+          value: null,
+        }
+      )
+    }
+  };
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className='flex flex-col gap-[6px]'>
-        <label htmlFor={'Html File'}>
-          Scrape Html File
+    <main className="flex min-h-screen flex-col items-center justify-center p-12">
+      <div className='flex flex-col gap-[16px] w-[500px] '>
+        <label className='text-center font-medium' htmlFor={'Html File'}>
+          Scrape Walmart HTML File
         </label>
         <div
           className='py-4 px-6 cursor-pointer min-h-fit rounded-lg border border-gray-200 bg-white'
@@ -83,7 +134,6 @@ export default function Home() {
                       </span>
                       or drag and drop
                     </p>
-                    <p>SVG, PNG, JPG</p>
                   </div>
                 </div>
               ) : (
@@ -120,6 +170,23 @@ export default function Home() {
             </>
           );
         })}
+
+        {error && (
+          <div className='text-red-500 mx-1 text-xs font-normal leading-4'>
+            {formData.error}
+          </div>
+        )}
+        {
+          formData.value && (
+            <button onClick={onSubmit} disabled={isLoading || !formData.value} className='py-2 px-4 bg-blue-500 text-white rounded-lg cursor-pointer disabled:bg-blue-900 disabled:cursor-not-allowed flex justify-center'>
+              {isLoading ? (<div className='flex gap-1 justify-end items-center'>
+                <span>Scraping please wait</span>
+                <LuLoader2 size={25} className='animate-spin' />
+              </div>) : 'Upload'}
+            </button>
+          )
+        }
+
       </div>
     </main>
   );
