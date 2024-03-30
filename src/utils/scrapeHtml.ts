@@ -33,58 +33,49 @@ export async function scrapeHtml(html: string) {
 
     // return;
 
-    const productImgUrls: string[] = await page.$$eval(imagesSelector, (imgs: any[]) =>
-      imgs.map((img: { src: any }) => img.src)
-    );
+    const rawProducts = await page.evaluate(() => {
+      const items: any[] = [];
+      document.querySelectorAll('[data-testid="list-view"]').forEach((element) => {
+        const titleElement: any = element.querySelector('[data-automation-id="product-title"]');
+        const priceElement: any = element.querySelector(
+          '[data-automation-id="product-price"] span.f2'
+        );
 
-    const productRatings: string[] = await page.$$eval(ratingSelector, (ratings: any[]) =>
-      ratings.map((r: { getAttribute: (arg0: string) => any }) => r.getAttribute("data-value"))
-    );
+        const imageElement: any = element.querySelector('[data-testid="productTileImage"]');
 
-    const productPrices: string[] = await page.$$eval(pricesSelector, (prices: any[]) =>
-      prices.map((p: { innerText: any }) => p.innerText)
-    );
+        const ratingElement: any = element.querySelector('[data-testid="product-ratings"]');
+        const reviewElement: any = element.querySelector('[data-testid="product-reviews"]');
+        if (titleElement && priceElement) {
+          const title = titleElement.innerText;
+          const price = priceElement.innerText;
+          const image = imageElement.getAttribute("src");
+          const rating = ratingElement.getAttribute("data-value");
+          const review = reviewElement.innerText;
 
-    const productDesc: string[] = await page.$$eval(descriptionSelector, (descs: any[]) =>
-      descs.map((d: { innerText: any }) => d.innerText)
-    );
-
-    const productReviewCounts: string[] = await page.$$eval(reviewSelector, (reviews: any[]) =>
-      reviews.map((r: { innerText: any }) => r.innerText)
-    );
-
-    const data = [productPrices, productDesc, productImgUrls];
-
-    const arrayLengths = data.map((array) => array.length);
-    const allArraysHaveSameLength = arrayLengths.every((length) => length === arrayLengths[0]);
-
-    if (allArraysHaveSameLength) {
-      console.log("Data is consistent and can map correctly");
-    } else {
-      console.log("Data is inconsistent and cannot map correctly");
-      console.log(
-        `productPrices: ${productPrices.length} productTitles: ${productDesc.length} productImgUrls: ${productImgUrls.length} productReviewCounts: ${productReviewCounts.length} productRatings: ${productRatings.length}`
-      );
-      console.log(data);
-    }
-
-    const products: Record<string, string>[] = [];
-    for (let i = 0; i < productDesc.length; i++) {
-      products.push({
-        description: productDesc[i],
-        price: productPrices[i],
-        imageUrl: productImgUrls[i],
-        reviews: productReviewCounts[i] || "N/A",
-        rating: productRatings[i] || "N/A",
-        resource,
+          if (title && price) {
+            items.push({
+              title,
+              price,
+              image,
+              rating,
+              review,
+            });
+          }
+        }
       });
+
+      return items;
+    });
+
+    if (rawProducts.length === 0) {
+      throw new Error("No products found");
     }
 
-    const result = await appendToExcel(products, true);
+    const result = await appendToExcel(rawProducts, true);
     return result;
   } catch (error) {
     console.log(error);
-    throw new Error("Error scraping HTML");
+    throw error;
   } finally {
     await browser.close();
     console.log("Browser closed");
