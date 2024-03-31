@@ -23,7 +23,7 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null)
 
   const onDrop = async (files: File[]) => {
-
+    setError(null)
     setFormData(
       {
         touched: true,
@@ -40,6 +40,7 @@ export default function Home() {
 
       maxFiles: 1,
     });
+
   const onSubmit = async () => {
     if (!formData.value) {
       setError('No file selected.');
@@ -59,7 +60,8 @@ export default function Home() {
       })
 
       if (!response.ok) {
-        throw new Error('Failed to upload the data. Please try again.')
+        const res = await response.json()
+        setError(res.error ?? 'Failed to process the file. Please try again.')
       }
 
       const blob = new Blob([await response.arrayBuffer()], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
@@ -73,7 +75,6 @@ export default function Home() {
       a.remove();
 
     } catch (error: Error | any) {
-      setError(error)
       console.error(error)
     } finally {
       setIsLoading(false)
@@ -173,7 +174,7 @@ export default function Home() {
 
         {error && (
           <div className='text-red-500 mx-1 text-xs font-normal leading-4'>
-            {formData.error}
+            {error}
           </div>
         )}
         {

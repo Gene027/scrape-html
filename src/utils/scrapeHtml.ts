@@ -25,6 +25,10 @@ export async function scrapeHtml(html: string) {
       timeout: 2 * 60 * 1000,
     });
 
+    await page.waitForFunction(() => document.querySelectorAll('[data-testid="list-view"]').length > 0, {
+      timeout: 30 * 1000,
+    });
+
     // await page.screenshot({
     //   type: "jpeg",
     //   path: "screenshot.jpeg",
@@ -45,7 +49,7 @@ export async function scrapeHtml(html: string) {
 
         const ratingElement: any = element.querySelector('[data-testid="product-ratings"]');
         const reviewElement: any = element.querySelector('[data-testid="product-reviews"]');
-        if (titleElement && priceElement) {
+        if (titleElement && priceElement && imageElement && ratingElement && reviewElement) {
           const title = titleElement.innerText;
           const price = priceElement.innerText;
           const image = imageElement.getAttribute("src");
@@ -61,6 +65,8 @@ export async function scrapeHtml(html: string) {
               review,
             });
           }
+        } else {
+            throw new Error("Unable to scrape data from the page, no products or unmatched selectors found.");
         }
       });
 

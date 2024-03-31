@@ -31,8 +31,8 @@ export const POST = async (req: Request, context: any) => {
     });
 
     return response;
-  } catch (error) {
-    console.error("Error reading stream", error);
-    return NextResponse.json({ error: "Error reading stream" }, { status: 500 });
+  } catch (error: any) {
+    console.error( error);
+    return NextResponse.json({ error: error?.message ?? 'Error scraping file' }, { status: 500 });
   }
 };
