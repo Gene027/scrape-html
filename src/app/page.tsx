@@ -54,7 +54,7 @@ export default function Home() {
     uploadData.append('file', formData.value);
 
     try {
-      const response = await fetch('/api/scrape', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API}/scrape`, {
         method: 'POST',
         body: uploadData,
       })

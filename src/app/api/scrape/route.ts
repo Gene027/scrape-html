@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { concatUint8Arrays } from "@/src/utils/streamToBuffer";
-import { scrapeHtml } from "@/src/utils/scrapeHtml";
 
 export const POST = async (req: Request, context: any) => {
   const body = req.body as any;
@@ -20,7 +19,7 @@ export const POST = async (req: Request, context: any) => {
     }
 
     let data = new TextDecoder().decode(concatUint8Arrays(chunks));
-    const resultBuffer = await scrapeHtml(data);
+    const resultBuffer = Buffer.from('new buffer')
     
     const response = new Response(resultBuffer, {
       headers: {
