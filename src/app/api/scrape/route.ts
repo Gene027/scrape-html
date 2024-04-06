@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { concatUint8Arrays } from "@/src/utils/streamToBuffer";
-import { scrapeHtml } from "@/src/utils/scrapeHtml";
 
 export const POST = async (req: Request, context: any) => {
   const body = req.body as any;
@@ -20,7 +19,7 @@ export const POST = async (req: Request, context: any) => {
     }
 
     let data = new TextDecoder().decode(concatUint8Arrays(chunks));
-    const resultBuffer = await scrapeHtml(data);
+    const resultBuffer = Buffer.from('new buffer')
     
     const response = new Response(resultBuffer, {
       headers: {
@@ -31,8 +30,8 @@ export const POST = async (req: Request, context: any) => {
     });
 
     return response;
-  } catch (error) {
-    console.error("Error reading stream", error);
-    return NextResponse.json({ error: "Error reading stream" }, { status: 500 });
+  } catch (error: any) {
+    console.error( error);
+    return NextResponse.json({ error: error?.message ?? 'Error scraping file' }, { status: 500 });
   }
 };
